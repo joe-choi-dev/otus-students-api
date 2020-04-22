@@ -1,16 +1,17 @@
 const _ = require('lodash');
-
+const nameRegex = /^[a-zA-Z ]{1,50}$/;
 
 class StudentsValidator {
 
-    static isValidGetStudentsRequest(request) {
-      let { searchTerm } = req.query;
+  static isValidSearchStudentsRequest(req) {
+    const { searchTerm } = req.query;
 
-      !(typeof searchTerm === 'string' || searchTerm instanceof String)
-        return false;
-
-      return true;
+    if (searchTerm && !searchTerm.match(nameRegex)) {
+      return false;
     }
+
+    return true;
+  }
 
 }
 

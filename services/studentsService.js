@@ -1,8 +1,7 @@
-const logger = require('../support/logger').withIdentifier('teamService');
-const StudentsView = require('./../data/viewModels/teamsView');
 const _ = require('lodash');
+const getJson = require('../restClient.js');
 
-const TEAM_MODEL_ATTRIBUTES = ['id', 'displayName', 'summary', 'slackChannel', 'distributionList', 'status', 'createdAt', 'updatedAt'];
+const OTUS_URL = 'https://gist.githubusercontent.com/edotus/bd63eefb9b4b1eacb641811f9a1a780d/raw/60e04520584f7a436917b0d5be2b6c18f039fadb/students_classes.json'
 
 class StudentsService {
   constructor(data, memberService) {
@@ -10,54 +9,74 @@ class StudentsService {
     this.memberService = memberService;
   }
 
-  async getTeamsBySearchTerm(searchTerm, size, offset) {
-    logger.info(`getTeamsBySearchTerm - searchTerm=${searchTerm} size=${size} offset=${offset}`);
+  async searchByName(searchTerm) {
+    const searchWords = _.words(searchTerm);
+    console.log(searchWords);
     try {
-      const [exactMatchDisplayNameRes, fullWordMatchDisplayNameRes, fullWordMatchSummaryRes, fullWordMatchDetailsRes, fuzzyMatchRes] = await Promise.all([
-        this.findAllTeams({ displayName: `${searchTerm}` }),
-        this.findAllTeams({ displayName: { [Op.regexp]: `\b${searchTerm}\b` } }, [['displayName', 'ASC']]), // complete word match
-        this.findAllTeams({ summary: { [Op.regexp]: `\b${searchTerm}\b` } }),
-        this.findAllTeams({ details: { [Op.regexp]: `\b${searchTerm}\b` } }),
-        this.findAllTeams({
-          [Op.or]: [
-            { displayName: { [Op.like]: `%${searchTerm}%` } },
-            { summary: { [Op.like]: `%${searchTerm}%` } },
-            { details: { [Op.like]: `%${searchTerm}%` } },
-            { slackChannel: { [Op.like]: `%${searchTerm}%` } },
-            { distributionList: { [Op.like]: `%${searchTerm}%` } },
-            { name: { [Op.like]: `%${searchTerm}%` } },
-          ],
-        }),
-      ]);
-      logger.info(`Successfully retrieving teams by searchTerm from db searchTerm=${searchTerm}`);
-      const allResults = _.uniqBy([...exactMatchDisplayNameRes, ...fullWordMatchDisplayNameRes, ...fullWordMatchSummaryRes, ...fullWordMatchDetailsRes, ...fuzzyMatchRes], 'id');
-      const count = allResults.length;
-      const finalResults = allResults.slice(size * offset, (((size * offset) + size)));
-      return { teams: finalResults, count };
+      let searchResultsToReturn = [];
+      if (searchWords.length === 1) {
+        const [searchResultsByFirstName, searchResultsByLastName] = await Promise.all([
+          this.getStudentByFirstName(searchWords[0]),
+          this.getStudentByLastName(searchWords[0])
+        ]);
+        searchResultsToReturn = searchResultsToReturn.concat(searchResultsByFirstName).concat(searchResultsByLastName);
+        searchResultsToReturn = _.uniqWith(searchResultsToReturn, _.isEqual);
+        return searchResultsToReturn;
+      } else {
+        searchResultsToReturn = await this.getStudentByFirstAndLastName(searchWords[0], searchWords[1]);
+        return searchResultsToReturn;
+      }
     } catch (error) {
-      logger.error(`Error retrieving teams by searchTerm from db searchTerm=${searchTerm} error=${error}`);
+      // logger.error(`Error retrieving teams by searchTerm from db searchTerm=${searchTerm} error=${error}`);
       throw error;
     }
   }
 
-  async getStudentById(resourceId, size, offset) {
-    logger.info(`getTeamsByResourceId - resourceId=${resourceId} size=${size} offset=${offset}`);
-    try {
-      return { teams: finalResults, count };
-    } catch (error) {
-      logger.error(`Error retrieving teams by resource id error=${error}`);
-      throw error;
-    }
+  async getStudentByFirstAndLastName(firstName, lastName) {
+    const result = await this.getAllStudents();
+    return result.filter(student => {
+      return (student.firstName === firstName) && (student.lastName === lastName);
+    });
+  }
+
+  async getStudentByFirstName(searchTerm) {
+    const result = await this.getAllStudents();
+    return result.filter(student => {
+      return student.firstName === searchTerm;
+    });
+  }
+
+  async getStudentByLastName(searchTerm) {
+    const result = await this.getAllStudents();
+    return result.filter(student => {
+      return student.lastName === searchTerm;
+    });
   }
 
   async getAllStudents() {
-    logger.info(`getAllTeams - size=${size} offset=${offset}`);
     try {
-      return {};
+      let result = await getJson(OTUS_URL);
+      const students = result.students.map((student) => {
+        return {
+          firstName: student.first,
+          lastName: student.last,
+          gpa: this.calculateGPA(student.studentClasses)
+        }
+      });
+      return students;
     } catch (error) {
-      logger.error(`Error retrieving all teams error=${error}`);
+      console.log(`Error retrieving all students error=${error}`);
       throw error;
     }
+  }
+
+  //calculate GPA to 2 decimals
+  calculateGPA(studentClasses) {
+    let total = 0;
+    studentClasses.forEach(studentClass => {
+      total += studentClass.grade;
+    })
+    return (total / studentClasses.length).toFixed(2);
   }
 
 }
