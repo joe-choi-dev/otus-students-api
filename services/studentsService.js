@@ -11,7 +11,6 @@ class StudentsService {
 
   async searchByName(searchTerm) {
     const searchWords = _.words(searchTerm);
-    console.log(searchWords);
     try {
       let searchResultsToReturn = [];
       if (searchWords.length === 1) {
@@ -27,7 +26,6 @@ class StudentsService {
         return searchResultsToReturn;
       }
     } catch (error) {
-      // logger.error(`Error retrieving teams by searchTerm from db searchTerm=${searchTerm} error=${error}`);
       throw error;
     }
   }
@@ -35,21 +33,21 @@ class StudentsService {
   async getStudentByFirstAndLastName(firstName, lastName) {
     const result = await this.getAllStudents();
     return result.filter(student => {
-      return (student.firstName === firstName) && (student.lastName === lastName);
+      return student.firstName.toLowerCase() === firstName.toLowerCase() && student.lastName.toLowerCase() === lastName.toLowerCase();
     });
   }
 
   async getStudentByFirstName(searchTerm) {
     const result = await this.getAllStudents();
     return result.filter(student => {
-      return student.firstName === searchTerm;
+      return student.firstName.toLowerCase() === searchTerm.toLowerCase();
     });
   }
 
   async getStudentByLastName(searchTerm) {
     const result = await this.getAllStudents();
     return result.filter(student => {
-      return student.lastName === searchTerm;
+      return student.lastName.toLowerCase() === searchTerm.toLowerCase();
     });
   }
 
@@ -65,7 +63,6 @@ class StudentsService {
       });
       return students;
     } catch (error) {
-      console.log(`Error retrieving all students error=${error}`);
       throw error;
     }
   }
