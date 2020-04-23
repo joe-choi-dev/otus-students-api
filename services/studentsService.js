@@ -25,6 +25,7 @@ class StudentsService {
     }
   }
 
+  //partial search as well -- "anthony joel"
   async searchByName(searchTerm) {
     try {
       const result = await this.getAllStudents();
@@ -41,19 +42,19 @@ class StudentsService {
 
   filterStudentByFullName(result, searchTerm) {
     return result.filter(student => {
-      return student.firstName.toLowerCase().concat(" ").concat(student.lastName).toLowerCase() === searchTerm.toLowerCase();
+      return (student.firstName.toLowerCase().concat(" ").concat(student.lastName).toLowerCase()).indexOf(searchTerm.toLowerCase()) >= 0;
     });
   }
 
   filterStudentByFirstName(result, searchTerm) {
     return result.filter(student => {
-      return student.firstName.toLowerCase() === searchTerm.toLowerCase();
+      return student.firstName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
     });
   }
 
   filterStudentByLastName(result, searchTerm) {
     return result.filter(student => {
-      return student.lastName.toLowerCase() === searchTerm.toLowerCase();
+      return student.lastName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
     });
   }
 
