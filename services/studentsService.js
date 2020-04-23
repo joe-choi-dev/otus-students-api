@@ -9,48 +9,6 @@ class StudentsService {
     this.memberService = memberService;
   }
 
-  async searchByName(searchTerm) {
-    const searchWords = _.words(searchTerm);
-    try {
-      let searchResultsToReturn = [];
-      if (searchWords.length === 1) {
-        const [searchResultsByFirstName, searchResultsByLastName] = await Promise.all([
-          this.getStudentByFirstName(searchWords[0]),
-          this.getStudentByLastName(searchWords[0])
-        ]);
-        searchResultsToReturn = searchResultsToReturn.concat(searchResultsByFirstName).concat(searchResultsByLastName);
-        searchResultsToReturn = _.uniqWith(searchResultsToReturn, _.isEqual);
-        return searchResultsToReturn;
-      } else {
-        searchResultsToReturn = await this.getStudentByFirstAndLastName(searchWords[0], searchWords[1]);
-        return searchResultsToReturn;
-      }
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getStudentByFirstAndLastName(firstName, lastName) {
-    const result = await this.getAllStudents();
-    return result.filter(student => {
-      return student.firstName.toLowerCase() === firstName.toLowerCase() && student.lastName.toLowerCase() === lastName.toLowerCase();
-    });
-  }
-
-  async getStudentByFirstName(searchTerm) {
-    const result = await this.getAllStudents();
-    return result.filter(student => {
-      return student.firstName.toLowerCase() === searchTerm.toLowerCase();
-    });
-  }
-
-  async getStudentByLastName(searchTerm) {
-    const result = await this.getAllStudents();
-    return result.filter(student => {
-      return student.lastName.toLowerCase() === searchTerm.toLowerCase();
-    });
-  }
-
   async getAllStudents() {
     try {
       let result = await getJson(OTUS_URL);
@@ -65,6 +23,38 @@ class StudentsService {
     } catch (error) {
       throw error;
     }
+  }
+
+  async searchByName(searchTerm) {
+    try {
+      const result = await this.getAllStudents();
+      let searchResultsToReturn = [];
+      searchResultsToReturn = [...this.filterStudentByFirstName(result, searchTerm), 
+        ...this.filterStudentByLastName(result, searchTerm), 
+        ...this.filterStudentByFullName(result, searchTerm)]
+      searchResultsToReturn = _.uniqWith(searchResultsToReturn, _.isEqual);
+      return searchResultsToReturn;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  filterStudentByFullName(result, searchTerm) {
+    return result.filter(student => {
+      return student.firstName.toLowerCase().concat(" ").concat(student.lastName).toLowerCase() === searchTerm.toLowerCase();
+    });
+  }
+
+  filterStudentByFirstName(result, searchTerm) {
+    return result.filter(student => {
+      return student.firstName.toLowerCase() === searchTerm.toLowerCase();
+    });
+  }
+
+  filterStudentByLastName(result, searchTerm) {
+    return result.filter(student => {
+      return student.lastName.toLowerCase() === searchTerm.toLowerCase();
+    });
   }
 
   //calculate GPA to 2 decimals

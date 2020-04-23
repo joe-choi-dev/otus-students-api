@@ -3,7 +3,7 @@ var router = express.Router();
 const StudentsValidator = require('../validators/studentsValidator');
 const StudentsService = require('../services/studentsService');
 
-/* GET ALL on default OR GET students by searchTerm*/
+/* GET ALL on default OR GET students by searchTerm or GET by email*/
 router.get('/', async (req, res) => { 
   if (StudentsValidator.isValidSearchStudentsRequest(req)) {
     try {
