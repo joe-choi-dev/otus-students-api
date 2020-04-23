@@ -1,5 +1,5 @@
 const _ = require('lodash');
-const nameRegex = /^[a-zA-Z ]{1,50}$/; //also hyphens
+const nameRegex = /^[a-zA-Z -]{1,50}$/;
 
 class StudentsValidator {
 
