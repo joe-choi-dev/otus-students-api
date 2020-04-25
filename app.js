@@ -11,14 +11,9 @@ var studentsRouter = require('./routes/students');
 
 var app = express();
 
-// var cors = require('cors');
-// app.use(cors());
-// app.options('*', cors());
-app.all('/', function(req, res, next) {
-  res.header("Access-Control-Allow-Origin", "*");
-  res.header("Access-Control-Allow-Headers", "X-Requested-With");
-  next();
-});
+var cors = require('cors');
+app.use(cors());
+app.options('*', cors());
 
 // view engine setup
 app.set('views', path.join(__dirname, 'views'));
