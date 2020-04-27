@@ -26,4 +26,22 @@ router.get('/', async (req, res) => {
   }
 });
 
+// GET DETAILS BY FULLNAME (ideally would have ids of each student)
+router.get('/:name', async (req, res) => { 
+  if (StudentsValidator.isValidDetailsRequest(req)) {
+    try {
+      const { name } = req.params;
+      console.log("name: " + name);
+      const studentsService = new StudentsService();
+      let results = {}
+      results = await studentsService.getDetails(name);
+      return res.status(200).json(results);
+    } catch (error) {
+      return res.status(500).json({ message: 'Server Error' });
+    }
+  } else {
+    return res.status(400).json({ message: 'Invalid Request' });
+  }
+});
+
 module.exports = router;

@@ -13,6 +13,16 @@ class StudentsValidator {
     return true;
   }
 
+  static isValidDetailsRequest(req) {
+    const { name } = req.params;
+
+    if (name && !name.match(nameRegex) && !name.contains(" ")) {
+      return false;
+    }
+
+    return true;
+  }
+
 }
 
 module.exports = StudentsValidator;

@@ -9,6 +9,42 @@ class StudentsService {
     this.memberService = memberService;
   }
 
+  //ideally would be id based
+  async getDetails(name) {
+    try {
+      let result = await this.getAllStudentsWithDetails(name);
+      return result;
+    } catch (error) {
+      throw error;
+    }
+  }
+
+  async getAllStudentsWithDetails(name) {
+    try {
+      let result = await getJson(OTUS_URL);
+
+      let students = result.students.map((student) => {
+        return {
+          firstName: student.first,
+          lastName: student.last,
+          email: student.email,
+          gpa: this.calculateGPA(student.studentClasses),
+          studentClasses: student.studentClasses
+        }
+      });
+
+      students = this.filterStudentByFullNameExactMatch(students, name);
+
+      students.length && students[0].studentClasses.forEach(studentClass => {
+        studentClass.className = result.classes[studentClass.id];
+      })
+
+      return students.length ? students[0] : {};
+    } catch (error) {
+      throw error;
+    }
+  }
+
   async getAllStudents() {
     try {
       let result = await getJson(OTUS_URL);
@@ -55,6 +91,12 @@ class StudentsService {
   filterStudentByLastName(result, searchTerm) {
     return result.filter(student => {
       return student.lastName.toLowerCase().indexOf(searchTerm.toLowerCase()) >= 0;
+    });
+  }
+
+  filterStudentByFullNameExactMatch(result, name) {
+    return result.filter(student => {
+      return ((student.firstName.concat(student.lastName)).toLowerCase() === name.toLowerCase());
     });
   }
 
