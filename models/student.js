@@ -6,9 +6,12 @@ class Student {
     this.gpa = this.calculateGPA(student.studentClasses);
   }
 
-  addDetails(student, classes) {
-    this.email = student.email;
-    this.studentClasses = this.mapClasses(student.studentClasses, classes)
+  toDetailsModel(student, classes) {
+    return {
+        ...this,
+        email: student.email,
+        studentClasses: this.mapClasses(student.studentClasses, classes)
+    };
   }
 
   //calculate GPA to 2 decimals

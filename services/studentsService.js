@@ -17,8 +17,7 @@ class StudentsService {
       const students = this.filterStudentByFullNameExactMatch(result.students, name);
       if (students.length) { 
         const student = new Student(students[0]);
-        student.addDetails(students[0], result.classes); 
-        return student;
+        return student.toDetailsModel(students[0], result.classes);
       }
       return {};
     } catch (error) {
