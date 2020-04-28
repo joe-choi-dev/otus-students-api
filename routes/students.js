@@ -3,12 +3,13 @@ var router = express.Router();
 const StudentsValidator = require('../validators/studentsValidator');
 const StudentsService = require('../services/studentsService');
 
+const studentsService = new StudentsService();
+
 /* GET ALL on default OR GET students by searchTerm or GET by email*/
 router.get('/', async (req, res) => { 
   if (StudentsValidator.isValidSearchStudentsRequest(req)) {
     try {
       const { searchTerm } = req.query;
-      const studentsService = new StudentsService();
       let results = {};
 
       if (searchTerm) {
@@ -31,7 +32,6 @@ router.get('/:name', async (req, res) => {
   if (StudentsValidator.isValidDetailsRequest(req)) {
     try {
       const { name } = req.params;
-      const studentsService = new StudentsService();
       const results = await studentsService.getStudentWithDetails(name);
       return res.status(200).json(results);
     } catch (error) {
