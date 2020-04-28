@@ -1,5 +1,6 @@
 const _ = require('lodash');
 const getJson = require('../restClient.js');
+const Student = require('../models/student');
 
 const OTUS_URL = 'https://gist.githubusercontent.com/edotus/bd63eefb9b4b1eacb641811f9a1a780d/raw/60e04520584f7a436917b0d5be2b6c18f039fadb/students_classes.json'
 
@@ -9,37 +10,17 @@ class StudentsService {
     this.memberService = memberService;
   }
 
-  //ideally would be id based
-  async getDetails(name) {
+  //ideally would be id-based
+  async getStudentWithDetails(name) {
     try {
-      let result = await this.getAllStudentsWithDetails(name);
-      return result;
-    } catch (error) {
-      throw error;
-    }
-  }
-
-  async getAllStudentsWithDetails(name) {
-    try {
-      let result = await getJson(OTUS_URL);
-
-      let students = result.students.map((student) => {
-        return {
-          firstName: student.first,
-          lastName: student.last,
-          email: student.email,
-          gpa: this.calculateGPA(student.studentClasses),
-          studentClasses: student.studentClasses
-        }
-      });
-
-      students = this.filterStudentByFullNameExactMatch(students, name);
-
-      students.length && students[0].studentClasses.forEach(studentClass => {
-        studentClass.className = result.classes[studentClass.id];
-      })
-
-      return students.length ? students[0] : {};
+      const result = await getJson(OTUS_URL);
+      const students = this.filterStudentByFullNameExactMatch(result.students, name);
+      if (students.length) { 
+        const student = new Student(students[0]);
+        student.addDetails(students[0], result.classes); 
+        return student;
+      }
+      return {};
     } catch (error) {
       throw error;
     }
@@ -49,11 +30,7 @@ class StudentsService {
     try {
       let result = await getJson(OTUS_URL);
       const students = result.students.map((student) => {
-        return {
-          firstName: student.first,
-          lastName: student.last,
-          gpa: this.calculateGPA(student.studentClasses)
-        }
+        return new Student(student);
       });
       return students;
     } catch (error) {
@@ -61,7 +38,7 @@ class StudentsService {
     }
   }
 
-  //partial search as well -- "anthony joel"
+  //partial search enabled
   async searchByName(searchTerm) {
     try {
       const result = await this.getAllStudents();
@@ -96,7 +73,7 @@ class StudentsService {
 
   filterStudentByFullNameExactMatch(result, name) {
     return result.filter(student => {
-      return ((student.firstName.concat(student.lastName)).toLowerCase() === name.toLowerCase());
+      return ((student.first.concat(student.last)).toLowerCase() === name.toLowerCase());
     });
   }
 

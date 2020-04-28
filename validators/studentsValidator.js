@@ -16,7 +16,7 @@ class StudentsValidator {
   static isValidDetailsRequest(req) {
     const { name } = req.params;
 
-    if (name && !name.match(nameRegex) && !name.contains(" ")) {
+    if (name && !name.match(nameRegex)) {
       return false;
     }
 
