@@ -5,7 +5,7 @@ const StudentsService = require('../services/studentsService');
 
 const studentsService = new StudentsService();
 
-/* GET ALL on default OR GET students by searchTerm or GET by email*/
+/* GET ALL on default OR GET students by searchTerm*/
 router.get('/', async (req, res) => { 
   if (StudentsValidator.isValidSearchStudentsRequest(req)) {
     try {
@@ -27,7 +27,7 @@ router.get('/', async (req, res) => {
   }
 });
 
-// GET DETAILS BY FULLNAME (ideally would have ids of each student)
+// GET DETAILS BY FULLNAME (ideally would have used student ids)
 router.get('/:name', async (req, res) => { 
   if (StudentsValidator.isValidDetailsRequest(req)) {
     try {
